@@ -1,5 +1,5 @@
-from .models import User, Seminar, Section
-from .serializers import UserSerializer, SeminarSerializer, SectionSerializer
+from .models import User, Seminar, Section, SubSection
+from .serializers import UserSerializer, SeminarSerializer, SectionSerializer, SubSectionSerializer
 from django.http import Http404
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -125,4 +125,49 @@ class SectionView(APIView):
         pk = request.GET.get('pk')
         section = self.get_object(pk)
         section.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+class SubsectionView(APIView):
+    """
+    Retrieve, update or delete a subsection instance.
+    """
+    def get_object(self, pk):
+        try:
+            return SubSection.objects.get(pk=pk)
+        except SubSection.DoesNotExist:
+            raise Http404
+
+    def get_section_object(self, pk):
+        try:
+            return Section.objects.get(pk=pk)
+        except Section.DoesNotExist:
+            raise Http404
+
+    def get(self, request):
+        section_id = request.GET["section_id"]
+        section = self.get_section_object(section_id)
+        subsections = SubSection.objects.filter(section_id=section.id)
+        serializer = SubSectionSerializer(subsections, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = SubSectionSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request):
+        pk = request.GET.get('pk')
+        subsection = self.get_object(pk)
+        serializer = SubSectionSerializer(subsection, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request):
+        pk = request.GET.get('pk')
+        subsection = self.get_object(pk)
+        subsection.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

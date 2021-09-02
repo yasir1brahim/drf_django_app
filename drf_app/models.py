@@ -30,3 +30,5 @@ class SubSection(models.Model):
         max_length=3,
         choices=CONTENT_CHOICES,
     )
+    content = models.CharField(max_length=255)
+    section = models.ForeignKey(Section, on_delete=models.DO_NOTHING)

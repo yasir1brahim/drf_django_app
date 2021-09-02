@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Seminar, Section
+from .models import User, Seminar, Section, SubSection
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -15,3 +15,8 @@ class SectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Section
         fields = ['id', 'title', 'description', 'seminar']
+
+class SubSectionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SubSection
+        fields = ['id', 'content_type', 'content', 'section']
