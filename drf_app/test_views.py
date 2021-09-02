@@ -2,7 +2,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase, RequestFactory
 
 from . import views
-from .models import User, Seminar, Section
+from .models import User, Seminar, Section, SubSection
 
 
 class UserViewCase(TestCase):
@@ -153,5 +153,66 @@ class SectionViewCase(TestCase):
 
         req = self.factory.delete(
             '/api/section/?pk=' + str(self.section.id))
+        resp = view_class.as_view()(req, *[], **{})
+        self.assertEqual(resp.status_code, status_code)
+
+
+class SubsectionViewCase(TestCase):
+
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.user = User.objects.create(
+            first_name='philipp', last_name='hafner')
+        self.seminar = Seminar.objects.create(
+            title='Computer Programming',
+            description='Programming is fun',
+        )
+        self.seminar.users.add(self.user)
+        self.section = Section.objects.create(
+            title='Python',
+            description='Basics of Python',
+            seminar=self.seminar
+        )
+        self.subsection = SubSection.objects.create(
+            content_type='TXT',
+            content='Hello World!',
+            section=self.section
+        )
+
+    def test_get(self):
+        status_code = 200
+        view_class = views.SubsectionView
+        req = self.factory.get(
+            '/api/subsection/?section_id=' + str(self.section.id))
+        resp = view_class.as_view()(req, *[], **{})
+        self.assertEqual(resp.status_code, status_code)
+
+    def test_post(self):
+        status_code = 201
+        view_class = views.SubsectionView
+        data = {'content_type': 'VID', 'content': 'youtube.com',
+                'section': str(self.section.id)}
+        req = self.factory.post(
+            '/api/subsection/', data, content_type='application/json')
+        resp = view_class.as_view()(req, *[], **{})
+        self.assertEqual(resp.status_code, status_code)
+
+    def test_put(self):
+        status_code = 200
+        view_class = views.SubsectionView
+        data = {'content_type': 'TXT', 'content': 'Hello World',
+                'section': str(self.section.id)}
+        req = self.factory.put(
+            '/api/subsection/?pk=' + str(self.subsection.id),
+            data=data, content_type='application/json')
+        resp = view_class.as_view()(req, *[], **{})
+        self.assertEqual(resp.status_code, status_code)
+
+    def test_delete(self):
+        status_code = 204
+        view_class = views.SubsectionView
+
+        req = self.factory.delete(
+            '/api/subsection/?pk=' + str(self.subsection.id))
         resp = view_class.as_view()(req, *[], **{})
         self.assertEqual(resp.status_code, status_code)
