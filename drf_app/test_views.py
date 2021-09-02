@@ -2,7 +2,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase, RequestFactory
 
 from . import views
-from .models import User, Seminar
+from .models import User, Seminar, Section
 
 
 class UserViewCase(TestCase):
@@ -98,5 +98,60 @@ class SeminarViewCase(TestCase):
 
         req = self.factory.delete(
             '/api/seminar/?pk=' + str(self.seminar.id))
+        resp = view_class.as_view()(req, *[], **{})
+        self.assertEqual(resp.status_code, status_code)
+
+
+class SectionViewCase(TestCase):
+
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.user = User.objects.create(
+            first_name='philipp', last_name='hafner')
+        self.seminar = Seminar.objects.create(
+            title='Computer Programming',
+            description='Programming is fun',
+        )
+        self.seminar.users.add(self.user)
+        self.section = Section.objects.create(
+            title='Python',
+            description='Basics of Python',
+            seminar=self.seminar
+        )
+
+    def test_get(self):
+        status_code = 200
+        view_class = views.SectionView
+        req = self.factory.get(
+            '/api/section/?seminar_id=' + str(self.seminar.id))
+        resp = view_class.as_view()(req, *[], **{})
+        self.assertEqual(resp.status_code, status_code)
+
+    def test_post(self):
+        status_code = 201
+        view_class = views.SectionView
+        data = {'title': 'Java', 'description': 'Basics of Java',
+                'seminar': str(self.seminar.id)}
+        req = self.factory.post(
+            '/api/section/', data, content_type='application/json')
+        resp = view_class.as_view()(req, *[], **{})
+        self.assertEqual(resp.status_code, status_code)
+
+    def test_put(self):
+        status_code = 200
+        view_class = views.SectionView
+        data = {'title': 'Swift4', 'description': 'Basics of Swift4',
+                'seminar': str(self.seminar.id)}
+        req = self.factory.put(
+            '/api/section/?pk=' + str(self.section.id), data=data, content_type='application/json')
+        resp = view_class.as_view()(req, *[], **{})
+        self.assertEqual(resp.status_code, status_code)
+
+    def test_delete(self):
+        status_code = 204
+        view_class = views.SectionView
+
+        req = self.factory.delete(
+            '/api/section/?pk=' + str(self.section.id))
         resp = view_class.as_view()(req, *[], **{})
         self.assertEqual(resp.status_code, status_code)
